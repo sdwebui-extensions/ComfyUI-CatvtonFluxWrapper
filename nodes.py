@@ -7,6 +7,7 @@ from .pipeline_flux_fill import FluxFillPipeline
 
 import comfy.model_management as mm
 from .utils import convert_diffusers_flux_lora
+import folder_paths
 
 script_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,15 +30,20 @@ class LoadCatvtonFlux:
         offload_device = mm.text_encoder_offload_device()
 
         print("Start loading LoRA weights")
+        if os.path.exists('/stable-diffusion-cache/models/catvton-flux-lora-alpha'):
+            repo_id = '/stable-diffusion-cache/models/catvton-flux-lora-alpha'
+        else:
+            repo_id = 'xiaozaa/catvton-flux-lora-alpha'
         state_dict, network_alphas = FluxFillPipeline.lora_state_dict(
-            pretrained_model_name_or_path_or_dict="xiaozaa/catvton-flux-lora-alpha",     ## The tryon Lora weights
+            pretrained_model_name_or_path_or_dict=repo_id,     ## The tryon Lora weights
             weight_name="pytorch_lora_weights.safetensors",
             return_alphas=True
         )
         is_correct_format = all("lora" in key or "dora_scale" in key for key in state_dict.keys())
         if not is_correct_format:
             raise ValueError("Invalid LoRA checkpoint.")
-        print('Loading diffusion model ...')
+        repo_id = os.path.join(folder_paths.models_dir, "FLUX.1-Fill-dev")
+        print(f'Loading diffusion model from {repo_id}')
         pipe = FluxFillPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-Fill-dev",
             torch_dtype=torch.bfloat16
@@ -160,8 +166,12 @@ class LoadCatvtonFluxLoRA:
         offload_device = mm.text_encoder_offload_device()
 
         print("Start loading LoRA weights")
+        if os.path.exists('/stable-diffusion-cache/models/catvton-flux-lora-alpha'):
+            repo_id = '/stable-diffusion-cache/models/catvton-flux-lora-alpha'
+        else:
+            repo_id = 'xiaozaa/catvton-flux-lora-alpha'
         state_dict, _ = FluxFillPipeline.lora_state_dict(
-            pretrained_model_name_or_path_or_dict="xiaozaa/catvton-flux-lora-alpha",     ## The tryon Lora weights
+            pretrained_model_name_or_path_or_dict=repo_id,     ## The tryon Lora weights
             weight_name="pytorch_lora_weights.safetensors",
             return_alphas=True
         )
